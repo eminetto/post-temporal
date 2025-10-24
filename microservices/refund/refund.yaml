@@ -1,0 +1,38 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: refund
+  labels:
+    app: refund
+spec:
+  selector:
+    app: deposit
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: refund
+  labels:
+    app: refund
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: refund
+  template:
+    metadata:
+      labels:
+        app: refund
+    spec:
+      containers:
+        - name: auth
+          image: eminetto/refund:latest
+          ports:
+            - containerPort: 8082
+          imagePullPolicy: Always

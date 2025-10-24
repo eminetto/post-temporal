@@ -1,0 +1,38 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: withdraw
+  labels:
+    app: withdraw
+spec:
+  selector:
+    app: withdraw
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: withdraw
+  labels:
+    app: withdraw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: withdraw
+  template:
+    metadata:
+      labels:
+        app: withdraw
+    spec:
+      containers:
+        - name: auth
+          image: eminetto/withdraw:latest
+          ports:
+            - containerPort: 8081
+          imagePullPolicy: Always

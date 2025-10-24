@@ -39,8 +39,29 @@ run-docker: build-deposit-docker build-withdraw-docker build-refund-docker
     docker run -d -p 8082:8082 refund
 
 deploy-k8s: #build-deposit-docker build-withdraw-docker build-refund-docker
+	helm install \
+        --repo https://go.temporal.io/helm-charts \
+        --set server.replicaCount=1 \
+        --set cassandra.config.cluster_size=1 \
+        --set elasticsearch.replicas=1 \
+        --set prometheus.enabled=false \
+        --set grafana.enabled=false \
+        temporaltest temporal \
+        --timeout 15m
+
 	docker push eminetto/deposit:latest
 	kubectl create namespace deposit
 	kubectl apply --namespace deposit -f microservices/deposit/deposit.yaml
 	kubectl port-forward --namespace deposit deployment/deposit 8080:8080
+
+	docker push eminetto/refund:latest
+	kubectl create namespace refund
+	kubectl apply --namespace refund -f microservices/refund/refund.yaml
+	kubectl port-forward --namespace refund deployment/refund 8082:8082
+
+	docker push eminetto/withdraw:latest
+	kubectl create namespace withdraw
+	kubectl apply --namespace withdraw -f microservices/withdraw/withdraw.yaml
+	kubectl port-forward --namespace withdraw deployment/withdraw 8081:8081
+
 
