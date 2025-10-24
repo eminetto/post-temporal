@@ -30,3 +30,8 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+.idea
+your_temporal.db
+microservices/deposit/bin
+microservices/withdrawal/bin
+microservices/refund/bin
