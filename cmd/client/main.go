@@ -74,15 +74,6 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("WorkflowID: %s RunID: %s\n", we.GetID(), we.GetRunID())
 
-	//var result string
-	//
-	//err = we.Get(context.Background(), &result)
-	//if err != nil {
-	//	log.Fatalln("Unable to get Workflow result:", err)
-	//}
-	//
-	//log.Println(result)
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "sucesso"})

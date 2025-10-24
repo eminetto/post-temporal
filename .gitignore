@@ -35,3 +35,5 @@ your_temporal.db
 microservices/deposit/bin
 microservices/withdrawal/bin
 microservices/refund/bin
+cmd/client/bin/client
+cmd/worker/bin/worker

@@ -33,10 +33,31 @@ build-refund-docker: build-refund-linux
 build-refund-linux:
 	cd microservices/refund; CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -tags "netgo" -installsuffix netgo -o bin/refund main.go
 
+build-client:
+	cd cmd/client; go build -o bin/client main.go
+
+build-client-docker: build-client-linux
+	docker build -t client -f cmd/client/Dockerfile .
+
+build-client-linux:
+	cd cmd/client; CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -tags "netgo" -installsuffix netgo -o bin/client main.go
+
+build-worker:
+	cd cmd/worker; go build -o bin/worker main.go
+
+build-worker-docker: build-worker-linux
+	docker build -t worker -f cmd/worker/Dockerfile .
+
+build-worker-linux:
+	cd cmd/worker; CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -tags "netgo" -installsuffix netgo -o bin/worker main.go
+
+
 run-docker: build-deposit-docker build-withdraw-docker build-refund-docker
     docker run -d -p 8080:8080 eminetto/deposit
     docker run -d -p 8081:8081 withdraw
     docker run -d -p 8082:8082 refund
+    docker run -d -p 8083:8083 client
+    docker run -d worker
 
 deploy-k8s: #build-deposit-docker build-withdraw-docker build-refund-docker
 	helm install \
@@ -64,4 +85,17 @@ deploy-k8s: #build-deposit-docker build-withdraw-docker build-refund-docker
 	kubectl apply --namespace withdraw -f microservices/withdraw/withdraw.yaml
 	kubectl port-forward --namespace withdraw deployment/withdraw 8081:8081
 
+	docker push eminetto/client:latest
+	kubectl create namespace client
+	kubectl apply --namespace client -f cmd/client/client.yaml
+	kubectl port-forward --namespace client deployment/client 8083:8083
 
+	docker push eminetto/worker:latest
+	kubectl create namespace worker
+	kubectl apply --namespace worker -f cmd/worker/worker.yaml
+
+clean-k8s:
+	kubectl delete namespace deposit
+	kubectl delete namespace withdraw
+	kubectl delete namespace refund
+	helm uninstall temporaltest
