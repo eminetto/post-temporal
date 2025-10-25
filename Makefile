@@ -57,9 +57,10 @@ run-docker: build-deposit-docker build-withdraw-docker build-refund-docker
     docker run -d -p 8081:8081 withdraw
     docker run -d -p 8082:8082 refund
     docker run -d -p 8083:8083 client
-    docker run -d worker
+	docker run -d worker
 
 deploy-k8s: #build-deposit-docker build-withdraw-docker build-refund-docker
+	kubectl create namespace temporal
 	helm install \
         --repo https://go.temporal.io/helm-charts \
         --set server.replicaCount=1 \
@@ -67,6 +68,7 @@ deploy-k8s: #build-deposit-docker build-withdraw-docker build-refund-docker
         --set elasticsearch.replicas=1 \
         --set prometheus.enabled=false \
         --set grafana.enabled=false \
+        --namespace temporal \
         temporaltest temporal \
         --timeout 15m
 
@@ -94,8 +96,10 @@ deploy-k8s: #build-deposit-docker build-withdraw-docker build-refund-docker
 	kubectl create namespace worker
 	kubectl apply --namespace worker -f cmd/worker/worker.yaml
 
+	kubectl port-forward --namespace temporal deployment/temporaltest-web 8233:8080
+
 clean-k8s:
 	kubectl delete namespace deposit
 	kubectl delete namespace withdraw
 	kubectl delete namespace refund
-	helm uninstall temporaltest
+	kubectl delete namespace temporal

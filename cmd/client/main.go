@@ -46,7 +46,9 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the client object just once per process
-	c, err := client.Dial(client.Options{})
+	c, err := client.Dial(client.Options{
+		HostPort: "temporal-frontend.temporal.svc.cluster.local:7233",
+	})
 	if err != nil {
 		log.Fatalln("Unable to create Temporal client:", err)
 	}
